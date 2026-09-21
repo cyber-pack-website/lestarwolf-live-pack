@@ -28,7 +28,7 @@ Moon event:
 - A new sub, renewal, gifted sub(s), or 10+ Kicks gifted triggers a moon roll.
 - The moon enters from the left, spins through White, Green, Blue, Purple, and Gold for 25 seconds, then lands on a weighted random color. Gold has a 3% chance.
 - When the moon lands, it drops a saved item for the supporter: White/Green items last 24 hours, Blue/Purple items last 42 hours, and the Gold Moon Totem is permanent.
-- Wolves play a real public-domain wolf howl when a viewer joins the pack and when the moon rises. Enable audio for the OBS browser source to hear it.
+- Wolves play LESTARWOLF's custom recorded howl when a viewer joins the pack and when the moon rises. Enable audio for the OBS browser source to hear it.
 - Active moon-loot icons stay beside the viewer's name instead of sitting on the wolf's body.
 - Owner testing: `!testmoon` for a random roll, or `!testmoon gold` to preview the Gold landing.
 
