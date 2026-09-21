@@ -11,6 +11,7 @@ Pack progression:
 - XP has a 60-second per-viewer cooldown to prevent spam.
 - Levels, ranks, profile pictures, and XP persist in the OBS browser source between streams.
 - The overlay shows the all-time Top 5 Pack Members.
+- The streamer account is excluded so every leaderboard spot belongs to a viewer.
 - Higher ranks grow slightly and gain brighter rank-colored nameplates.
 - Ranks: Newborn Pup, Pack Pup, Trail Scout, Night Hunter, Pack Guardian, Moon Warrior, Alpha Wolf, and Cyber Pack Legend.
 - Test wolves never earn XP or enter the leaderboard.
