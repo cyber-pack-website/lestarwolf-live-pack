@@ -24,6 +24,11 @@ Viewer chat commands:
 - `!dig` — dig for funny loot, bonus XP, and rare cosmetics (10-minute cooldown)
 - `!leaderboard` or `!top5` — show the Top 5 Pack Members for 15 seconds
 
+Moon event:
+- A new sub, renewal, gifted sub(s), or 10+ Kicks gifted triggers a moon roll.
+- The moon enters from the left, spins through White, Green, Blue, Purple, and Gold for 25 seconds, then lands on a weighted random color. Gold has a 3% chance.
+- Owner testing: `!testmoon` for a random roll, or `!testmoon gold` to preview the Gold landing.
+
 Digging loot includes bones, giant steaks, old boots, squeaky ducks, skunks, empty holes, golden bones, and the rare Moon Crown. The squeaky duck is a funny find, not a cosmetic. Golden Collars have about a 0.8% drop chance and Moon Crowns about a 0.2% drop chance; both are saved and automatically equipped on the viewer's wolf.
 The `LESTARWOLF` streamer account has no `!dig` cooldown; viewers keep the 10-minute cooldown.
 
@@ -35,5 +40,7 @@ Required host secrets:
 - `PUBLIC_URL`
 - `KICK_CLIENT_ID`
 - `KICK_CLIENT_SECRET`
+
+After adding the moon feature, visit `/setup` once more to grant the required Kicks permission and subscribe the overlay to the new Kick events.
 
 Never commit the Kick client secret to GitHub.
