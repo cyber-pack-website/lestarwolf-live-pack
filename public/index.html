@@ -89,7 +89,7 @@
     }
     function announcement(w){const n=document.createElement("div");n.className="join";n.style.left=clamp(w.x+119,120,innerWidth-120)+"px";n.textContent=`🐾 ${w.name} JOINED THE PACK`;pack.append(n);setTimeout(()=>n.remove(),3100)}
     function packHowl(joiner){
-      setState(joiner,"howl",2700);announcement(joiner);let nearby=[...wolves.values()].filter(w=>w!==joiner&&!w.leaving).sort((a,b)=>Math.abs(a.x-joiner.x)-Math.abs(b.x-joiner.x)).slice(0,3);
+      setState(joiner,"howl",2700);announcement(joiner);let nearby=[...wolves.values()].filter(w=>w!==joiner&&!w.leaving&&w.joined).sort((a,b)=>Math.abs(a.x-joiner.x)-Math.abs(b.x-joiner.x)).slice(0,3);
       nearby.forEach((w,i)=>setTimeout(()=>{w.moving=false;setState(w,"howl",1900);w.next=performance.now()+2600+rand(w,2200)},220+i*160))
     }
     function runCommand(w,command){
