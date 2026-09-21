@@ -13,24 +13,20 @@
     .wolf.visible{opacity:1}
     .wolf.leaving{opacity:.82}
     .character{position:absolute;inset:0;transform:scaleX(var(--flip));transform-origin:50% 76%;transition:transform .18s ease}
-    .sprite{position:absolute;inset:0;background-repeat:no-repeat;filter:var(--fur-filter);will-change:background-position,transform}
-    .walk .sprite{background-image:url("assets/wolf-walk.webp");background-size:400% 100%;animation:walkFrames .68s steps(4) infinite,walkBody .34s ease-in-out infinite alternate}
-    .idle .sprite,.howl .sprite,.sit .sprite,.sleep .sprite,.scratch .sprite,.play .sprite,.react .sprite{background-image:url("assets/wolf-actions.webp");background-size:300% 200%}
-    .idle .sprite,.react .sprite{background-position:0 0}
-    .howl .sprite{background-position:50% 0;animation:howlPulse 1.3s ease-in-out infinite}
-    .sit .sprite{background-position:100% 0}
-    .sleep .sprite{background-position:0 100%;animation:breathe 2.8s ease-in-out infinite}
-    .scratch .sprite{background-position:50% 100%;animation:scratch .2s ease-in-out infinite alternate}
-    .play .sprite{background-position:100% 100%;animation:pounce .48s ease-in-out infinite alternate}
-    .react .sprite{animation:perk .35s ease-out 2 alternate}
-    .eye-glow{position:absolute;right:46px;top:51px;width:6px;height:6px;border-radius:50%;background:var(--eye,#e31b2d);box-shadow:0 0 7px 2px var(--eye,#e31b2d);opacity:.75;transform:scaleX(var(--flip));display:none}
-    .idle .eye-glow,.react .eye-glow{display:block}
-    .scar{position:absolute;right:49px;top:43px;width:2px;height:20px;background:#cdd5daaa;box-shadow:4px 1px 0 #cdd5da66;transform:rotate(19deg) scaleX(var(--flip));opacity:var(--scar,0);border-radius:2px}
+    .sprite{position:absolute;left:8px;right:8px;top:18px;bottom:0;background-repeat:no-repeat;background-position:center bottom;background-size:contain;filter:var(--fur-filter);will-change:transform}
+    .walk .sprite{background-image:url("assets/wolf-walk.webp");animation:walkBody .34s ease-in-out infinite alternate}
+    .idle .sprite,.sit .sprite,.sleep .sprite,.scratch .sprite,.play .sprite,.howl .sprite{background-image:url("assets/wolf-video.webp")}
+    .react .sprite{background-image:url("assets/wolf-alert.webp");background-position:center bottom;animation:perk .35s ease-out 2 alternate}
+    .howl .sprite{animation:howlPulse 1.3s ease-in-out infinite}
+    .sit .sprite{transform:translateY(5px)}
+    .sleep .sprite{animation:breathe 2.8s ease-in-out infinite;transform:translateY(8px) scale(.98)}
+    .scratch .sprite{animation:scratch .2s ease-in-out infinite alternate}
+    .play .sprite{animation:pounce .48s ease-in-out infinite alternate}
+    .eye-glow,.scar{display:none}
     .nameplate{position:absolute;left:50%;top:-3px;transform:translateX(-50%);max-width:205px;padding:5px 12px 5px 28px;border:1px solid #eb2238;border-radius:12px;background:linear-gradient(180deg,#111720f2,#050609f2);color:#fff;font-size:14px;font-weight:900;letter-spacing:.25px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-shadow:0 1px 3px #000;box-shadow:0 0 0 1px #000,0 3px 12px #000b,0 0 12px #b70e2266}
     .nameplate:before{content:"";position:absolute;left:9px;top:8px;width:9px;height:9px;background:var(--eye,#e31b2d);transform:rotate(45deg);box-shadow:0 0 7px var(--eye,#e31b2d)}
     .join{position:absolute;bottom:205px;left:50%;transform:translateX(-50%);padding:7px 14px;border-radius:14px;background:#06080be8;border:1px solid #e42036;color:#fff;font-size:14px;font-weight:1000;letter-spacing:.55px;white-space:nowrap;text-shadow:0 2px 4px #000;box-shadow:0 5px 18px #000a,0 0 18px #c9183066;animation:join 3s forwards;z-index:999}
     .status{position:absolute;right:14px;top:12px;padding:5px 9px;border-radius:8px;background:#080a0dbb;color:#aeb5bc;font:700 11px Arial;opacity:0;transition:opacity .2s}.demo .status{opacity:1}
-    @keyframes walkFrames{to{background-position-x:133.333%}}
     @keyframes walkBody{to{transform:translateY(-3px) rotate(-.5deg)}}
     @keyframes howlPulse{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px) rotate(-1deg);filter:brightness(1.1)}}
     @keyframes breathe{50%{transform:scale(1.015,.985) translateY(2px)}}
