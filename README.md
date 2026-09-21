@@ -1,12 +1,14 @@
-# LESTARWOLF Live Pack
+# LESTARWOLF Live Pack V2
+
 Hosted OBS Browser Source overlay for the LESTARWOLF Kick channel.
 
-After deployment, OBS uses one URL:
-`https://YOUR-SERVICE/overlay/`
+OBS URL: `https://lestarwolf-live-pack.onrender.com/overlay/`
+
+V2 keeps the existing Kick OAuth, webhook, WebSocket, and Render configuration. The new front end adds asset-driven wolf animation, stable per-viewer looks, real roaming, pack reactions, crowd spacing, and 15-minute walk-off.
 
 Required host secrets:
-- PUBLIC_URL
-- KICK_CLIENT_ID
-- KICK_CLIENT_SECRET
+- `PUBLIC_URL`
+- `KICK_CLIENT_ID`
+- `KICK_CLIENT_SECRET`
 
 Never commit the Kick client secret to GitHub.
