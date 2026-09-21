@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: lestarwolf-live-pack
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: PUBLIC_URL
+        sync: false
+      - key: KICK_CLIENT_ID
+        sync: false
+      - key: KICK_CLIENT_SECRET
+        sync: false
