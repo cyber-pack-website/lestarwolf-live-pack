@@ -108,7 +108,7 @@
     function startInteraction(w,type,targetKey){const target=interactionTarget(w,targetKey,type==="playwith"?"play":"boop");if(!target)return;target.moving=false;target.target=null;target.zoomiesUntil=0;setState(target,"idle",3200);w.interaction={type,targetKey};const side=w.x<=target.x?-88:88;moveTo(w,{x:clamp(target.x+side,5,innerWidth-245),y:target.y},false,true)}
     function finishInteraction(w){const action=w.interaction;w.interaction=null;if(!action)return false;const target=wolves.get(action.targetKey);if(!target||target.leaving)return false;if(action.type==="boop"){setState(w,"react",2500);setState(target,"react",2500);findNotice(w,`🐽 ${w.name} BOOPED ${target.name}!`,"#ff8ba0");w.next=target.next=performance.now()+3300}else{setState(w,"play",6500);setState(target,"play",6500);findNotice(w,`🐾 ${w.name} AND ${target.name} ARE WRESTLING!`,"#52f7d4");w.next=target.next=performance.now()+7300}return true}
     function runCommand(w,command,targetKey=""){
-      if(!command||w.leaving)return;w.moving=false;w.target=null;w.zoomiesUntil=0;w.interaction=null;w.commandId=(w.commandId||0)+1;const id=w.commandId;w.el.querySelectorAll(".treat").forEach(x=>x.remove());
+      if(!command||w.leaving)return;w.el.dataset.lastCommand=command;w.moving=false;w.target=null;w.zoomiesUntil=0;w.interaction=null;w.commandId=(w.commandId||0)+1;const id=w.commandId;w.el.querySelectorAll(".treat").forEach(x=>x.remove());
       if(command==="dig"){runDig(w);return}
       if(command==="stats"){showStats(w);return}
       if(command==="commands"){showCommands(w);return}
@@ -163,8 +163,8 @@
     connect();
     updateLeaderboard();
     const query=new URLSearchParams(location.search);
-    if(query.has("demo")){["DigTester","LESTARWOLF","NightFang","CyberHowl","RedMoon","PackRunner"].forEach((username,i)=>setTimeout(()=>spawn({username,message:i===0?"!dig":i===5?"!leaderboard":""}),i*850))}
-    if(query.has("v3test")){setTimeout(()=>spawn({username:"DigTester",message:"!zoomies"}),9000);setTimeout(()=>spawn({username:"CyberHowl",message:"!boop @NightFang"}),18000);setTimeout(()=>spawn({username:"LESTARWOLF",message:"!play @PackRunner"}),24000);setTimeout(()=>spawn({username:"RedMoon",message:"!howl"}),32000)}
+    if(query.has("demo")){["DigTester","LESTARWOLF","NightFang","CyberHowl","RedMoon","PackRunner"].forEach((username,i)=>setTimeout(()=>spawn({username,message:i===5?"!leaderboard":""}),i*850))}
+    if(query.has("v3test")){setTimeout(()=>spawn({username:"DigTester",message:"!zoomies"}),28000);setTimeout(()=>spawn({username:"CyberHowl",message:"!boop @NightFang"}),39000);setTimeout(()=>spawn({username:"LESTARWOLF",message:"!play @PackRunner"}),48000);setTimeout(()=>spawn({username:"RedMoon",message:"!howl"}),58000)}
     if(query.has("moon"))setTimeout(()=>triggerMoon({username:"DigTester",detail:"10 TEST KICKS",force:query.get("moon")}),5200);
     addEventListener("resize",()=>{for(const w of wolves.values())if(!w.leaving){w.x=clamp(w.x,-40,innerWidth-205);w.el.style.left=w.x+"px"}});
   </script>
