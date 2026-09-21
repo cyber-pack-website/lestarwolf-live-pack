@@ -15,13 +15,13 @@
     .character{position:absolute;inset:0;transform:scaleX(var(--flip));transform-origin:50% 76%;transition:transform .18s ease}
     .sprite{position:absolute;inset:0;background-repeat:no-repeat;filter:var(--fur-filter);will-change:background-position,transform}
     .walk .sprite{background-image:url("assets/wolf-walk.webp");background-size:400% 100%;animation:walkFrames .68s steps(4) infinite,walkBody .34s ease-in-out infinite alternate}
-    .idle .sprite,.howl .sprite,.sit .sprite,.sleep .sprite,.scratch .sprite,.play .sprite,.react .sprite{background-image:url("assets/wolf-actions.webp");background-size:300% 200%}
-    .idle .sprite,.react .sprite{background-position:0 0}
-    .howl .sprite{background-position:50% 0;animation:howlPulse 1.3s ease-in-out infinite}
-    .sit .sprite{background-position:100% 0}
-    .sleep .sprite{background-position:0 100%;animation:breathe 2.8s ease-in-out infinite}
-    .scratch .sprite{background-position:50% 100%;animation:scratch .2s ease-in-out infinite alternate}
-    .play .sprite{background-position:100% 100%;animation:pounce .48s ease-in-out infinite alternate}
+    .idle .sprite,.howl .sprite,.sit .sprite,.sleep .sprite,.scratch .sprite,.play .sprite,.react .sprite{background-size:100% 100%}
+    .idle .sprite,.react .sprite{background-image:url("assets/wolf-idle.webp")}
+    .howl .sprite{background-image:url("assets/wolf-howl.webp");animation:howlPulse 1.3s ease-in-out infinite}
+    .sit .sprite{background-image:url("assets/wolf-sit.webp")}
+    .sleep .sprite{background-image:url("assets/wolf-sleep.webp");animation:breathe 2.8s ease-in-out infinite}
+    .scratch .sprite{background-image:url("assets/wolf-scratch.webp");animation:scratch .2s ease-in-out infinite alternate}
+    .play .sprite{background-image:url("assets/wolf-play.webp");animation:pounce .48s ease-in-out infinite alternate}
     .react .sprite{animation:perk .35s ease-out 2 alternate}
     .eye-glow{position:absolute;right:46px;top:51px;width:6px;height:6px;border-radius:50%;background:var(--eye,#e31b2d);box-shadow:0 0 7px 2px var(--eye,#e31b2d);opacity:.75;transform:scaleX(var(--flip));display:none}
     .idle .eye-glow,.react .eye-glow{display:block}
@@ -55,8 +55,8 @@
     ],eyes=["#ed1832","#ff7b22","#62c8ff","#d9f5ff","#a449ff","#ffd25a"];
     function setState(w,state,ms=0){w.state=state;w.el.className=`wolf visible ${state}${state==="walk"&&w.leaving?" leaving":""}`;w.until=ms?performance.now()+ms:0}
     function targetFor(w){
-      const edge=Math.max(12,innerWidth<700?8:30),max=Math.max(edge,innerWidth-250),slots=[];
-      for(let i=0;i<9;i++){const x=edge+rand(w,Math.max(1,max-edge)),y=18+rand(w,58);let score=0;for(const o of wolves.values())if(o!==w)score+=Math.max(0,175-Math.abs(o.x-x))*2+Math.max(0,42-Math.abs(o.y-y));slots.push({x,y,score})}
+      const edge=innerWidth<700?6:24,max=Math.max(edge,innerWidth-250),cols=Math.max(2,Math.floor((max-edge)/195)+1),slots=[];
+      for(let row=0;row<2;row++)for(let i=0;i<cols;i++){const x=cols===1?edge:edge+(max-edge)*i/(cols-1),y=20+row*48;let score=0;for(const o of wolves.values())if(o!==w){const ox=o.target&&!o.leaving?o.target.x:o.x,oy=o.target&&!o.leaving?o.target.y:o.y,dist=Math.hypot(ox-x,(oy-y)*2.4);score+=dist<205?(205-dist)*8:12000/(dist+40)}slots.push({x:x+rand(w,18)-9,y:y+rand(w,9)-4.5,score})}
       slots.sort((a,b)=>a.score-b.score);return slots[0]
     }
     function moveTo(w,target,leaving=false){
