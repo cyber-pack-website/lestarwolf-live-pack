@@ -55,9 +55,9 @@
     ],eyes=["#ed1832","#ff7b22","#62c8ff","#d9f5ff","#a449ff","#ffd25a"];
     function setState(w,state,ms=0){w.state=state;w.el.className=`wolf visible ${state}${state==="walk"&&w.leaving?" leaving":""}`;w.until=ms?performance.now()+ms:0}
     function targetFor(w){
-      const edge=innerWidth<700?6:24,max=Math.max(edge,innerWidth-250),cols=Math.max(2,Math.floor((max-edge)/195)+1),slots=[];
-      for(let row=0;row<2;row++)for(let i=0;i<cols;i++){const x=cols===1?edge:edge+(max-edge)*i/(cols-1),y=20+row*48;let score=0;for(const o of wolves.values())if(o!==w){const ox=o.target&&!o.leaving?o.target.x:o.x,oy=o.target&&!o.leaving?o.target.y:o.y,dist=Math.hypot(ox-x,(oy-y)*2.4);score+=dist<205?(205-dist)*8:12000/(dist+40)}slots.push({x:x+rand(w,18)-9,y:y+rand(w,9)-4.5,score})}
-      slots.sort((a,b)=>a.score-b.score);return slots[0]
+      const edge=innerWidth<700?6:24,max=Math.max(edge,innerWidth-250),cols=Math.max(2,Math.floor((max-edge)/195)+1),rows=wolves.size>cols?2:1,slots=[];
+      for(let row=0;row<rows;row++)for(let i=0;i<cols;i++){const x=cols===1?edge:edge+(max-edge)*i/(cols-1),y=20+row*82;let nearest=99999;for(const o of wolves.values())if(o!==w){const ox=o.target&&!o.leaving?o.target.x:o.x,oy=o.target&&!o.leaving?o.target.y:o.y;nearest=Math.min(nearest,Math.hypot(ox-x,(oy-y)*2.2))}slots.push({x:x+rand(w,10)-5,y:y+rand(w,7)-3.5,nearest})}
+      slots.sort((a,b)=>b.nearest-a.nearest);return slots[0]
     }
     function moveTo(w,target,leaving=false){
       w.target=target;w.leaving=leaving;w.moving=true;w.speed=leaving?145:!w.joined?185+rand(w,45):52+rand(w,32);w.flip=target.x<w.x?-1:1;w.el.style.setProperty("--flip",w.flip);setState(w,"walk")
