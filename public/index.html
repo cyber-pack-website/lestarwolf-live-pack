@@ -26,8 +26,9 @@
     .eye-glow{position:absolute;right:46px;top:51px;width:6px;height:6px;border-radius:50%;background:var(--eye,#e31b2d);box-shadow:0 0 7px 2px var(--eye,#e31b2d);opacity:.75;transform:scaleX(var(--flip));display:none}
     .idle .eye-glow,.react .eye-glow{display:block}
     .scar{position:absolute;right:49px;top:43px;width:2px;height:20px;background:#cdd5daaa;box-shadow:4px 1px 0 #cdd5da66;transform:rotate(19deg) scaleX(var(--flip));opacity:var(--scar,0);border-radius:2px}
-    .nameplate{position:absolute;left:50%;top:-3px;transform:translateX(-50%);max-width:205px;padding:5px 12px 5px 28px;border:1px solid #eb2238;border-radius:12px;background:linear-gradient(180deg,#111720f2,#050609f2);color:#fff;font-size:14px;font-weight:900;letter-spacing:.25px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-shadow:0 1px 3px #000;box-shadow:0 0 0 1px #000,0 3px 12px #000b,0 0 12px #b70e2266}
+    .nameplate{position:absolute;left:50%;top:-3px;transform:translateX(-50%);max-width:205px;min-height:27px;padding:5px 12px 5px 28px;border:1px solid #eb2238;border-radius:14px;background:linear-gradient(180deg,#111720f2,#050609f2);color:#fff;font-size:14px;font-weight:900;letter-spacing:.25px;white-space:nowrap;overflow:hidden;text-shadow:0 1px 3px #000;box-shadow:0 0 0 1px #000,0 3px 12px #000b,0 0 12px #b70e2266}
     .nameplate:before{content:"";position:absolute;left:9px;top:8px;width:9px;height:9px;background:var(--eye,#e31b2d);transform:rotate(45deg);box-shadow:0 0 7px var(--eye,#e31b2d)}
+    .nameplate.has-avatar{padding-left:34px}.nameplate.has-avatar:before{display:none}.nameplate span{display:block;overflow:hidden;text-overflow:ellipsis}.avatar{position:absolute;left:3px;top:2px;width:22px;height:22px;border-radius:50%;object-fit:cover;background:#111;border:1px solid #f02a3f;box-shadow:0 0 7px #d51d35}
     .join{position:absolute;bottom:205px;left:50%;transform:translateX(-50%);padding:7px 14px;border-radius:14px;background:#06080be8;border:1px solid #e42036;color:#fff;font-size:14px;font-weight:1000;letter-spacing:.55px;white-space:nowrap;text-shadow:0 2px 4px #000;box-shadow:0 5px 18px #000a,0 0 18px #c9183066;animation:join 3s forwards;z-index:999}
     .status{position:absolute;right:14px;top:12px;padding:5px 9px;border-radius:8px;background:#080a0dbb;color:#aeb5bc;font:700 11px Arial;opacity:0;transition:opacity .2s}.demo .status{opacity:1}
     @keyframes walkFrames{to{background-position-x:133.333%}}
@@ -47,6 +48,7 @@
     const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
     const hash=s=>{let h=2166136261;for(const c of s){h^=c.charCodeAt(0);h=Math.imul(h,16777619)}return h>>>0};
     const safe=s=>String(s||"").replace(/[<>&"']/g,c=>({"<":"&lt;",">":"&gt;","&":"&amp;",'"':"&quot;","'":"&#39;"})[c]);
+    const avatarOf=d=>{const raw=typeof d.avatar==="string"?d.avatar:d.avatar&&typeof d.avatar.url==="string"?d.avatar.url:"";try{const u=new URL(raw);return u.protocol==="https:"?u.href:""}catch{return""}};
     const rand=(w,n=1)=>{w.seed=(Math.imul(w.seed,1664525)+1013904223)>>>0;return(w.seed/4294967296)*n};
     const palettes=[
       "brightness(.84) contrast(1.2) saturate(1.1)","brightness(.98) contrast(1.08) saturate(.82)","sepia(.18) hue-rotate(330deg) brightness(.92)",
@@ -69,12 +71,12 @@
       nearby.forEach((w,i)=>setTimeout(()=>{w.moving=false;setState(w,"howl",1900);w.next=performance.now()+2600+rand(w,2200)},220+i*160))
     }
     function spawn(d){
-      const name=String(d.username||"PackWolf").trim().slice(0,40),key=name.toLowerCase();
-      if(wolves.has(key)){const w=wolves.get(key);w.last=Date.now();if(w.leaving){w.leaving=false;moveTo(w,targetFor(w))}else if(!w.moving){setState(w,"react",800);w.next=performance.now()+1200}return}
+      const name=String(d.username||"PackWolf").trim().slice(0,40),key=name.toLowerCase(),avatar=avatarOf(d);
+      if(wolves.has(key)){const w=wolves.get(key);w.last=Date.now();if(avatar&&!w.avatar){w.avatar=avatar;const plate=w.el.querySelector(".nameplate");plate.classList.add("has-avatar");plate.insertAdjacentHTML("afterbegin",`<img class="avatar" src="${safe(avatar)}" alt="">`)}if(w.leaving){w.leaving=false;moveTo(w,targetFor(w))}else if(!w.moving){setState(w,"react",800);w.next=performance.now()+1200}return}
       const h=hash(key),el=document.createElement("div"),fromLeft=(h&1)===0,scale=.82+((h>>>8)%18)/100;
       el.className="wolf walk";el.style.setProperty("--scale",scale);el.style.setProperty("--depth",1+((h>>>12)%5));el.style.setProperty("--fur-filter",palettes[h%palettes.length]);el.style.setProperty("--eye",eyes[(h>>>4)%eyes.length]);el.style.setProperty("--scar",(h>>>10)%4===0?.9:0);
-      el.innerHTML=`<div class="nameplate">${safe(name)}</div><div class="character"><div class="sprite"></div><i class="eye-glow"></i><i class="scar"></i></div>`;pack.append(el);
-      const w={name,key,el,seed:h||7,x:fromLeft?-260:innerWidth+30,y:18+((h>>>16)%45),target:null,moving:false,leaving:false,flip:fromLeft?1:-1,state:"walk",until:0,next:0,last:Date.now(),joined:false};wolves.set(key,w);w.el.style.left=w.x+"px";w.el.style.bottom=w.y+"px";requestAnimationFrame(()=>el.classList.add("visible"));moveTo(w,targetFor(w))
+      el.innerHTML=`<div class="nameplate${avatar?" has-avatar":""}">${avatar?`<img class="avatar" src="${safe(avatar)}" alt="">`:""}<span>${safe(name)}</span></div><div class="character"><div class="sprite"></div><i class="eye-glow"></i><i class="scar"></i></div>`;pack.append(el);
+      const w={name,key,avatar,el,seed:h||7,x:fromLeft?-260:innerWidth+30,y:18+((h>>>16)%45),target:null,moving:false,leaving:false,flip:fromLeft?1:-1,state:"walk",until:0,next:0,last:Date.now(),joined:false};wolves.set(key,w);w.el.style.left=w.x+"px";w.el.style.bottom=w.y+"px";requestAnimationFrame(()=>el.classList.add("visible"));moveTo(w,targetFor(w))
     }
     function chooseAction(w,now){
       const r=rand(w);let state=r<.34?"idle":r<.52?"sit":r<.66?"sleep":r<.78?"scratch":r<.9?"play":"howl";
