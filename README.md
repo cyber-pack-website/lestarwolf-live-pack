@@ -12,6 +12,10 @@ Viewer chat commands:
 - `!sleep` — put your wolf to sleep
 - `!treat` — toss your wolf a treat
 
+Owner-only testing commands:
+- `!testwolf` — add one test wolf
+- `!testpack` — add five test wolves
+
 Required host secrets:
 - `PUBLIC_URL`
 - `KICK_CLIENT_ID`

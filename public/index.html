@@ -48,7 +48,7 @@
 <body>
   <div id="pack"></div><div id="status" class="status">V2 PACK ONLINE</div>
   <script>
-    const pack=document.getElementById("pack"),wolves=new Map(),ACTIONS=["idle","sit","sleep","scratch","play"],TIMEOUT=15*60*1000;
+    const pack=document.getElementById("pack"),wolves=new Map(),ACTIONS=["idle","sit","sleep","scratch","play"],TIMEOUT=15*60*1000,OWNER="lestarwolf";let testWolfNumber=0;
     const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
     const hash=s=>{let h=2166136261;for(const c of s){h^=c.charCodeAt(0);h=Math.imul(h,16777619)}return h>>>0};
     const safe=s=>String(s||"").replace(/[<>&"']/g,c=>({"<":"&lt;",">":"&gt;","&":"&amp;",'"':"&quot;","'":"&#39;"})[c]);
@@ -81,8 +81,10 @@
       if(command==="treat"){setState(w,"treating",duration);const bone=document.createElement("b");bone.className="treat";bone.textContent="🦴";w.el.querySelector(".character").append(bone);setTimeout(()=>{if(w.commandId===id)bone.remove()},1900)}else setState(w,command,duration);
       w.next=performance.now()+duration+900
     }
+    function addTestWolves(count){for(let i=0;i<count;i++)setTimeout(()=>{testWolfNumber++;spawn({username:`TestWolf${testWolfNumber}`,avatar:location.origin+"/overlay/assets/wolf-idle.webp",message:""})},i*500)}
     function spawn(d){
-      const name=String(d.username||"PackWolf").trim().slice(0,40),key=name.toLowerCase(),avatar=avatarOf(d),command=commandOf(d.message);
+      const name=String(d.username||"PackWolf").trim().slice(0,40),key=name.toLowerCase(),avatar=avatarOf(d),chatCommand=String(d.message||"").trim().toLowerCase().split(/\s+/)[0],command=commandOf(d.message);
+      if(key===OWNER&&chatCommand==="!testwolf"){addTestWolves(1);return}if(key===OWNER&&chatCommand==="!testpack"){addTestWolves(5);return}
       if(wolves.has(key)){const w=wolves.get(key);w.last=Date.now();if(avatar&&!w.avatar){w.avatar=avatar;const plate=w.el.querySelector(".nameplate");plate.classList.add("has-avatar");plate.insertAdjacentHTML("afterbegin",`<img class="avatar" src="${safe(avatar)}" alt="">`)}if(w.leaving){w.leaving=false;moveTo(w,targetFor(w));w.pendingCommand=command}else if(command)runCommand(w,command);else if(!w.moving){setState(w,"react",800);w.next=performance.now()+1200}return}
       const h=hash(key),el=document.createElement("div"),fromLeft=(h&1)===0,scale=.82+((h>>>8)%18)/100;
       el.className="wolf walk";el.style.setProperty("--scale",scale);el.style.setProperty("--depth",1+((h>>>12)%5));el.style.setProperty("--fur-filter",palettes[h%palettes.length]);el.style.setProperty("--eye",eyes[(h>>>4)%eyes.length]);el.style.setProperty("--scar",(h>>>10)%4===0?.9:0);
