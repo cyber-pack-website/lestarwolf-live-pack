@@ -57,10 +57,11 @@
     function targetFor(w){
       const edge=innerWidth<700?6:24,max=Math.max(edge,innerWidth-250),cols=Math.max(2,Math.floor((max-edge)/195)+1),rows=wolves.size>cols?2:1,slots=[];
       for(let row=0;row<rows;row++)for(let i=0;i<cols;i++){const x=cols===1?edge:edge+(max-edge)*i/(cols-1),y=20+row*82;let nearest=99999;for(const o of wolves.values())if(o!==w){const ox=o.target&&!o.leaving?o.target.x:o.x,oy=o.target&&!o.leaving?o.target.y:o.y;nearest=Math.min(nearest,Math.hypot(ox-x,(oy-y)*2.2))}slots.push({x:x+rand(w,10)-5,y:y+rand(w,7)-3.5,nearest})}
-      slots.sort((a,b)=>b.nearest-a.nearest);return slots[0]
+      const travel=slots.filter(s=>Math.hypot(s.x-w.x,(s.y-w.y)*2)>175),pool=travel.length?travel:slots;
+      pool.sort((a,b)=>b.nearest-a.nearest);return pool[Math.floor(rand(w,Math.min(3,pool.length)))]
     }
     function moveTo(w,target,leaving=false){
-      w.target=target;w.leaving=leaving;w.moving=true;w.speed=leaving?145:!w.joined?185+rand(w,45):52+rand(w,32);w.flip=target.x<w.x?-1:1;w.el.style.setProperty("--flip",w.flip);setState(w,"walk")
+      w.target=target;w.leaving=leaving;w.moving=true;w.speed=leaving?150:!w.joined?190+rand(w,50):78+rand(w,38);w.flip=target.x<w.x?-1:1;w.el.style.setProperty("--flip",w.flip);setState(w,"walk")
     }
     function announcement(w){const n=document.createElement("div");n.className="join";n.style.left=clamp(w.x+119,120,innerWidth-120)+"px";n.textContent=`🐾 ${w.name} JOINED THE PACK`;pack.append(n);setTimeout(()=>n.remove(),3100)}
     function packHowl(joiner){
@@ -85,8 +86,8 @@
       const dt=Math.min(.3,(now-last)/1000);last=now;
       for(const [key,w] of wolves){
         if(w.moving){const dx=w.target.x-w.x,dy=w.target.y-w.y,dist=Math.hypot(dx,dy),step=w.speed*dt;if(dist<=step+1){w.x=w.target.x;w.y=w.target.y;w.moving=false;if(w.leaving){w.el.remove();wolves.delete(key);continue}if(!w.joined){w.joined=true;packHowl(w)}else{setState(w,"idle",1700);w.next=now+2200+rand(w,3200)}}else{w.x+=dx/dist*step;w.y+=dy/dist*step}w.el.style.left=w.x+"px";w.el.style.bottom=w.y+"px"}
-        else if(w.until&&now>=w.until){setState(w,"idle");w.next=now+900+rand(w,2600)}
-        else if(!w.until&&now>=w.next&&!w.leaving){if(rand(w)<.46)moveTo(w,targetFor(w));else chooseAction(w,now)}
+        else if(w.until&&now>=w.until){setState(w,"idle");w.next=now+650+rand(w,1500)}
+        else if(!w.until&&now>=w.next&&!w.leaving){if(rand(w)<.72)moveTo(w,targetFor(w));else chooseAction(w,now)}
         if(!w.leaving&&Date.now()-w.last>TIMEOUT)leave(w)
       }
       requestAnimationFrame(frame)
