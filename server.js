@@ -21,4 +21,4 @@ app.get("/callback",async(req,res)=>{try{if(req.query.state!==pkce.state)throw E
  const sr=await fetch("https://api.kick.com/public/v1/events/subscriptions",{method:"POST",headers:{Authorization:"Bearer "+tok.access_token,"Content-Type":"application/json"},body:JSON.stringify({method:"webhook",events:[{name:"chat.message.sent",version:1}]})});
  res.send("<h2>Kick connected.</h2><p>OBS URL: <b>"+BASE+"/overlay/</b></p><pre>"+(await sr.text()).replace(/[<>&]/g,"")+"</pre>")}catch(e){res.status(500).send("Setup failed: "+e.message)}});
 app.post("/webhook",express.raw({type:"*/*"}),(req,res)=>{try{if(req.get("Kick-Event-Type")!=="chat.message.sent")return res.sendStatus(200);const d=JSON.parse(req.body.toString()),s=d.sender||{};if(s.username)send({type:"chat",username:s.username,avatar:s.profile_picture||"",message:d.content||""});res.sendStatus(200)}catch{res.sendStatus(400)}});
-server.listen(PORT,()=>console.log("Live Pack running on",PORT));
+server.listen(PORT,"0.0.0.0",()=>console.log("Live Pack running on 0.0.0.0:"+PORT));
