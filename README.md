@@ -25,6 +25,7 @@ Viewer chat commands:
 - `!leaderboard` or `!top5` — show the Top 5 Pack Members for 15 seconds
 
 Digging loot includes bones, giant steaks, old boots, squeaky ducks, skunks, empty holes, golden bones, and the rare Moon Crown. Duck Charms, Golden Collars, and Moon Crowns are saved and automatically equipped on the viewer's wolf.
+The `LESTARWOLF` streamer account has no `!dig` cooldown; viewers keep the 10-minute cooldown.
 
 Owner-only testing commands:
 - `!testwolf` — add one test wolf
