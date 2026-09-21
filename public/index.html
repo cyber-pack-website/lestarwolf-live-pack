@@ -123,7 +123,7 @@
     function connect(){const ws=new WebSocket((location.protocol==="https:"?"wss://":"ws://")+location.host+"/live");ws.onopen=()=>document.getElementById("status").textContent="V2 PACK ONLINE";ws.onmessage=e=>{try{const d=JSON.parse(e.data);if(d.type==="chat")spawn(d)}catch{}};ws.onclose=()=>{document.getElementById("status").textContent="RECONNECTING";setTimeout(connect,2200)}}
     connect();
     updateLeaderboard();
-    if(new URLSearchParams(location.search).has("demo")){document.body.classList.add("demo");["LESTARWOLF","NightFang","CyberHowl","RedMoon","PackRunner"].forEach((username,i)=>setTimeout(()=>spawn({username}),i*850))}
+    if(new URLSearchParams(location.search).has("demo")){document.body.classList.add("demo");["LESTARWOLF","NightFang","CyberHowl","RedMoon","PackRunner"].forEach((username,i)=>setTimeout(()=>spawn({username,message:i===4?"!leaderboard":""}),i*850))}
     addEventListener("resize",()=>{for(const w of wolves.values())if(!w.leaving){w.x=clamp(w.x,-40,innerWidth-205);w.el.style.left=w.x+"px"}});
   </script>
 </body>
