@@ -15,16 +15,18 @@
     .character{position:absolute;inset:0;transform:scaleX(var(--flip));transform-origin:50% 76%;transition:transform .18s ease}
     .sprite{position:absolute;inset:0;background-repeat:no-repeat;filter:var(--fur-filter);will-change:background-position,transform}
     .walk .sprite{background-image:url("assets/wolf-walk.webp");background-size:400% 100%;animation:walkFrames .68s steps(4) infinite,walkBody .34s ease-in-out infinite alternate}
-    .idle .sprite,.howl .sprite,.sit .sprite,.sleep .sprite,.scratch .sprite,.play .sprite,.react .sprite,.treating .sprite{background-size:100% 100%}
+    .idle .sprite,.howl .sprite,.sit .sprite,.sleep .sprite,.scratch .sprite,.dig .sprite,.play .sprite,.react .sprite,.treating .sprite{background-size:100% 100%}
     .idle .sprite,.react .sprite,.treating .sprite{background-image:url("assets/wolf-idle.webp")}
     .howl .sprite{background-image:url("assets/wolf-howl.webp");animation:howlPulse 1.3s ease-in-out infinite}
     .sit .sprite{background-image:url("assets/wolf-sit.webp")}
     .sleep .sprite{background-image:url("assets/wolf-sleep.webp");animation:breathe 2.8s ease-in-out infinite}
     .scratch .sprite{background-image:url("assets/wolf-scratch.webp");animation:scratch .2s ease-in-out infinite alternate}
+    .dig .sprite{background-image:url("assets/wolf-scratch.webp");animation:dig .16s ease-in-out infinite alternate}
     .play .sprite{background-image:url("assets/wolf-play.webp");animation:pounce .48s ease-in-out infinite alternate}
     .treating .sprite{animation:chew .22s ease-in-out 1.65s 9 alternate}
     .react .sprite{animation:perk .35s ease-out 2 alternate}
     .treat{position:absolute;left:12px;bottom:8px;font-size:28px;line-height:1;filter:drop-shadow(0 2px 3px #000);z-index:8;animation:treatToss 1.75s ease-in forwards}
+    .find-fx{position:absolute;left:48%;bottom:17px;font-size:34px;line-height:1;filter:drop-shadow(0 3px 4px #000);z-index:9;animation:findPop 3.2s ease-out forwards}.cosmetic{position:absolute;left:54%;top:37px;z-index:7;font-size:25px;line-height:1;filter:drop-shadow(0 2px 3px #000);animation:cosmeticFloat 2.4s ease-in-out infinite}
     .eye-glow{position:absolute;right:46px;top:51px;width:6px;height:6px;border-radius:50%;background:var(--eye,#e31b2d);box-shadow:0 0 7px 2px var(--eye,#e31b2d);opacity:.75;transform:scaleX(var(--flip));display:none}
     .idle .eye-glow,.react .eye-glow{display:block}
     .scar{position:absolute;right:49px;top:43px;width:2px;height:20px;background:#cdd5daaa;box-shadow:4px 1px 0 #cdd5da66;transform:rotate(19deg) scaleX(var(--flip));opacity:var(--scar,0);border-radius:2px}
@@ -38,23 +40,25 @@
     @keyframes howlPulse{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px) rotate(-1deg);filter:brightness(1.1)}}
     @keyframes breathe{50%{transform:scale(1.015,.985) translateY(2px)}}
     @keyframes scratch{to{transform:rotate(-1.6deg) translateX(-2px)}}
+    @keyframes dig{to{transform:rotate(-2.4deg) translate(-3px,2px)}}
     @keyframes pounce{to{transform:translateY(-8px) rotate(-1deg)}}
     @keyframes perk{to{transform:translateY(-7px) scale(1.025)}}
     @keyframes chew{to{transform:translateY(2px) rotate(1deg)}}
     @keyframes treatToss{0%{transform:translate(0,0) rotate(-25deg) scale(1);opacity:1}55%{transform:translate(92px,-78px) rotate(18deg) scale(.82);opacity:1}100%{transform:translate(168px,-62px) rotate(42deg) scale(.25);opacity:0}}
+    @keyframes findPop{0%{transform:translate(-50%,18px) scale(.25) rotate(-18deg);opacity:0}22%,70%{transform:translate(-50%,-35px) scale(1.2) rotate(8deg);opacity:1}100%{transform:translate(-50%,-58px) scale(.75);opacity:0}}@keyframes cosmeticFloat{50%{transform:translateY(-3px) rotate(4deg)}}
     @keyframes join{0%{opacity:0;transform:translate(-50%,12px) scale(.9)}14%,72%{opacity:1;transform:translate(-50%,0) scale(1)}100%{opacity:0;transform:translate(-50%,-18px) scale(.96)}}
   </style>
 </head>
 <body>
   <div id="pack"></div><aside id="leaderboard" class="leaderboard"><div class="board-title">TOP 5 <b>PACK MEMBERS</b></div><div id="boardRows"></div></aside><div id="status" class="status">V2 PACK ONLINE</div>
   <script>
-    const pack=document.getElementById("pack"),wolves=new Map(),TIMEOUT=15*60*1000,XP_COOLDOWN=60*1000,BOARD_DURATION=15*1000,OWNER="lestarwolf",STORE_KEY="lestarwolf-pack-progress-v1",RANKS=["Newborn Pup","Pack Pup","Trail Scout","Night Hunter","Pack Guardian","Moon Warrior","Alpha Wolf","Cyber Pack Legend"],RANK_LEVELS=[1,3,6,10,15,21,28,36],RANK_COLORS=["#e7243b","#ed5b35","#f09b34","#ffcf58","#80d6ff","#9d83ff","#ff477e","#52f7d4"];let testWolfNumber=0,boardTimer=0;
+    const pack=document.getElementById("pack"),wolves=new Map(),TIMEOUT=15*60*1000,XP_COOLDOWN=60*1000,DIG_COOLDOWN=10*60*1000,BOARD_DURATION=15*1000,OWNER="lestarwolf",STORE_KEY="lestarwolf-pack-progress-v1",RANKS=["Newborn Pup","Pack Pup","Trail Scout","Night Hunter","Pack Guardian","Moon Warrior","Alpha Wolf","Cyber Pack Legend"],RANK_LEVELS=[1,3,6,10,15,21,28,36],RANK_COLORS=["#e7243b","#ed5b35","#f09b34","#ffcf58","#80d6ff","#9d83ff","#ff477e","#52f7d4"],DIG_LOOT=[{id:"bone",upto:29,icon:"🦴",label:"FOUND A BONE",xp:8},{id:"steak",upto:47,icon:"🥩",label:"FOUND A GIANT STEAK",xp:15},{id:"boot",upto:65,icon:"🥾",label:"DUG UP AN OLD BOOT... GROSS",xp:0},{id:"duck",upto:77,icon:"🦆",label:"FOUND A SQUEAKY DUCK",xp:5,cosmetic:"🦆",cosmeticName:"Duck Charm",tier:1},{id:"skunk",upto:87,icon:"🦨",label:"FOUND A SKUNK — RUN",xp:0,run:true},{id:"nothing",upto:94,icon:"❓",label:"FOUND... ABSOLUTELY NOTHING",xp:0},{id:"golden",upto:99,icon:"🏅",label:"FOUND THE GOLDEN BONE",xp:50,cosmetic:"🏅",cosmeticName:"Golden Collar",tier:2},{id:"crown",upto:100,icon:"👑",label:"FOUND THE MOON CROWN",xp:100,cosmetic:"👑",cosmeticName:"Moon Crown",tier:3}];let testWolfNumber=0,boardTimer=0;
     let progress={};try{progress=JSON.parse(localStorage.getItem(STORE_KEY)||"{}")||{}}catch{progress={}}
     const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
     const hash=s=>{let h=2166136261;for(const c of s){h^=c.charCodeAt(0);h=Math.imul(h,16777619)}return h>>>0};
     const safe=s=>String(s||"").replace(/[<>&"']/g,c=>({"<":"&lt;",">":"&gt;","&":"&amp;",'"':"&quot;","'":"&#39;"})[c]);
     const avatarOf=d=>{const raw=typeof d.avatar==="string"?d.avatar:d.avatar&&typeof d.avatar.url==="string"?d.avatar.url:"";try{const u=new URL(raw);return u.protocol==="https:"?u.href:""}catch{return""}};
-    const commandOf=message=>({"!howl":"howl","!sit":"sit","!sleep":"sleep","!treat":"treat"})[String(message||"").trim().toLowerCase().split(/\s+/)[0]]||"";
+    const commandOf=message=>({"!howl":"howl","!sit":"sit","!sleep":"sleep","!treat":"treat","!dig":"dig"})[String(message||"").trim().toLowerCase().split(/\s+/)[0]]||"";
     const rand=(w,n=1)=>{w.seed=(Math.imul(w.seed,1664525)+1013904223)>>>0;return(w.seed/4294967296)*n};
     const palettes=[
       "brightness(.84) contrast(1.2) saturate(1.1)","brightness(.98) contrast(1.08) saturate(.82)","sepia(.18) hue-rotate(330deg) brightness(.92)",
@@ -63,14 +67,16 @@
     ],eyes=["#ed1832","#ff7b22","#62c8ff","#d9f5ff","#a449ff","#ffd25a"];
     const levelOf=xp=>Math.floor(Math.sqrt(Math.max(0,xp)/25))+1;
     const rankIndexOf=level=>{let rank=0;for(let i=1;i<RANK_LEVELS.length;i++)if(level>=RANK_LEVELS[i])rank=i;return rank};
-    const profileFor=(key,name,avatar)=>{const p=progress[key]||{name,xp:0,lastXp:0,avatar:""};p.name=name||p.name;p.avatar=avatar||p.avatar||"";p.xp=Number(p.xp)||0;p.lastXp=Number(p.lastXp)||0;progress[key]=p;return p};
+    const profileFor=(key,name,avatar)=>{const p=progress[key]||{name,xp:0,lastXp:0,lastDig:0,avatar:"",inventory:{},cosmetic:"",cosmeticName:"",cosmeticTier:0};p.name=name||p.name;p.avatar=avatar||p.avatar||"";p.xp=Number(p.xp)||0;p.lastXp=Number(p.lastXp)||0;p.lastDig=Number(p.lastDig)||0;p.inventory=p.inventory&&typeof p.inventory==="object"?p.inventory:{};p.cosmetic=String(p.cosmetic||"");p.cosmeticName=String(p.cosmeticName||"");p.cosmeticTier=Number(p.cosmeticTier)||0;progress[key]=p;return p};
     function saveProgress(){try{localStorage.setItem(STORE_KEY,JSON.stringify(progress))}catch{}}
     function profileStats(p){const level=levelOf(p.xp),rank=rankIndexOf(level);return{level,rank,title:RANKS[rank],color:RANK_COLORS[rank]}}
     function updateLeaderboard(){const rows=document.getElementById("boardRows"),top=Object.entries(progress).filter(([key,p])=>key!==OWNER&&!key.startsWith("testwolf")&&p&&p.name).sort((a,b)=>(b[1].xp||0)-(a[1].xp||0)||(a[1].name||"").localeCompare(b[1].name||"")).slice(0,5);rows.innerHTML=top.map(([key,p],i)=>{const s=profileStats(p),pic=avatarOf({avatar:p.avatar});return`<div class="board-row"><span class="board-place">${i+1}</span>${pic?`<img class="board-avatar" src="${safe(pic)}" alt="">`:`<span class="board-avatar blank">🐺</span>`}<span class="board-who"><span class="board-name">${safe(p.name)}</span><span class="board-rank">${safe(s.title)} · ${p.xp} XP</span></span><span class="board-level">LV ${s.level}</span></div>`}).join("")}
     function showLeaderboard(){const board=document.getElementById("leaderboard");updateLeaderboard();if(!document.querySelector(".board-row")||boardTimer)return;board.classList.add("show");boardTimer=setTimeout(()=>{board.classList.remove("show");boardTimer=0},BOARD_DURATION)}
-    function updateWolfRank(w){const p=profileFor(w.key,w.name,w.avatar),s=profileStats(p),base=w.baseScale||1;w.el.style.setProperty("--scale",(base+s.rank*.018).toFixed(3));w.el.style.setProperty("--rank-glow",s.color);w.el.style.setProperty("--rank-shine",12+s.rank*3+"px");w.el.dataset.rank=s.rank;const meta=w.el.querySelector(".wolf-meta");if(meta)meta.textContent=`LV ${s.level} · ${s.title}`}
+    function updateWolfRank(w){const p=profileFor(w.key,w.name,w.avatar),s=profileStats(p),base=w.baseScale||1;w.el.style.setProperty("--scale",(base+s.rank*.018).toFixed(3));w.el.style.setProperty("--rank-glow",s.color);w.el.style.setProperty("--rank-shine",12+s.rank*3+"px");w.el.dataset.rank=s.rank;const meta=w.el.querySelector(".wolf-meta"),cosmetic=w.el.querySelector(".cosmetic");if(meta)meta.textContent=`LV ${s.level} · ${s.title}`;if(cosmetic){cosmetic.textContent=p.cosmetic;cosmetic.title=p.cosmeticName}}
     function levelAnnouncement(w,stats){const n=document.createElement("div");n.className="join";n.style.left=clamp(w.x+119,130,innerWidth-130)+"px";n.style.borderColor=stats.color;n.textContent=`🌙 ${w.name} REACHED LEVEL ${stats.level} — ${stats.title}`;pack.append(n);setTimeout(()=>n.remove(),3100)}
     function awardXp(key,name,avatar,isCommand=false){if(key.startsWith("testwolf"))return{leveled:false};const p=profileFor(key,name,avatar),before=levelOf(p.xp),now=Date.now();if(now-p.lastXp<XP_COOLDOWN){if(avatar&&!p.avatar){p.avatar=avatar;saveProgress();updateLeaderboard()}return{leveled:false,stats:profileStats(p)}}p.xp+=5+(isCommand?3:0);p.lastXp=now;saveProgress();updateLeaderboard();const stats=profileStats(p);return{leveled:stats.level>before,stats}}
+    function findNotice(w,text,color="#e42036"){const n=document.createElement("div");n.className="join";n.style.left=clamp(w.x+119,150,innerWidth-150)+"px";n.style.borderColor=color;n.textContent=text;pack.append(n);setTimeout(()=>n.remove(),3100)}
+    function runDig(w){const p=profileFor(w.key,w.name,w.avatar),now=Date.now(),remaining=DIG_COOLDOWN-(now-p.lastDig);if(remaining>0){setState(w,"react",1500);const wait=remaining<60000?Math.ceil(remaining/1000)+" SECONDS":Math.ceil(remaining/60000)+" MINUTES";findNotice(w,`🕒 ${w.name} CAN DIG AGAIN IN ${wait}`,"#8a93a0");w.next=performance.now()+2200;return}p.lastDig=now;const roll=rand(w,100),loot=DIG_LOOT.find(x=>roll<x.upto)||DIG_LOOT[DIG_LOOT.length-1],before=levelOf(p.xp),upgraded=!!loot.cosmetic&&((loot.tier||0)>p.cosmeticTier||!p.cosmetic);p.inventory[loot.id]=(Number(p.inventory[loot.id])||0)+1;p.xp+=loot.xp;if(upgraded){p.cosmetic=loot.cosmetic;p.cosmeticName=loot.cosmeticName;p.cosmeticTier=loot.tier||0}saveProgress();updateLeaderboard();updateWolfRank(w);setState(w,"dig",4300);const fx=document.createElement("b");fx.className="find-fx";fx.textContent=loot.icon;w.el.append(fx);setTimeout(()=>fx.remove(),3300);const reward=loot.xp?` +${loot.xp} XP`:"",unlock=upgraded?` · ${loot.cosmeticName.toUpperCase()} UNLOCKED`:"";setTimeout(()=>findNotice(w,`${loot.icon} ${w.name} ${loot.label}${reward}${unlock}`,loot.cosmetic?"#ffcf58":"#e42036"),650);const stats=profileStats(p);if(stats.level>before)setTimeout(()=>levelAnnouncement(w,stats),3600);if(loot.run){const id=w.commandId;setTimeout(()=>{if(w.commandId===id&&!w.leaving)moveTo(w,targetFor(w))},3300)}w.next=performance.now()+5200}
     function setState(w,state,ms=0){w.state=state;w.el.className=`wolf visible ${state}${state==="walk"&&w.leaving?" leaving":""}`;w.until=ms?performance.now()+ms:0}
     function targetFor(w){
       const edge=innerWidth<700?6:24,max=Math.max(edge,innerWidth-250),cols=Math.max(2,Math.floor((max-edge)/195)+1),rows=wolves.size>cols?2:1,slots=[];
@@ -88,6 +94,7 @@
     }
     function runCommand(w,command){
       if(!command||w.leaving)return;w.moving=false;w.target=null;w.commandId=(w.commandId||0)+1;const id=w.commandId;w.el.querySelectorAll(".treat").forEach(x=>x.remove());
+      if(command==="dig"){runDig(w);return}
       const durations={howl:4000,sit:10000,sleep:14000,treat:5200},duration=durations[command];
       if(command==="treat"){setState(w,"treating",duration);const bone=document.createElement("b");bone.className="treat";bone.textContent="🦴";w.el.querySelector(".character").append(bone);setTimeout(()=>{if(w.commandId===id)bone.remove()},1900)}else setState(w,command,duration);
       w.next=performance.now()+duration+900
@@ -100,7 +107,7 @@
       if(wolves.has(key)){const w=wolves.get(key);w.last=Date.now();if(avatar&&!w.avatar){w.avatar=avatar;const plate=w.el.querySelector(".nameplate");plate.classList.add("has-avatar");plate.insertAdjacentHTML("afterbegin",`<img class="avatar" src="${safe(avatar)}" alt="">`)}updateWolfRank(w);if(xpResult.leveled)levelAnnouncement(w,xpResult.stats);if(w.leaving){w.leaving=false;moveTo(w,targetFor(w));w.pendingCommand=command}else if(command)runCommand(w,command);else if(!w.moving){setState(w,"react",800);w.next=performance.now()+1200}return}
       const h=hash(key),el=document.createElement("div"),fromLeft=(h&1)===0,scale=.82+((h>>>8)%18)/100;
       el.className="wolf walk";el.style.setProperty("--scale",scale);el.style.setProperty("--depth",1+((h>>>12)%5));el.style.setProperty("--fur-filter",palettes[h%palettes.length]);el.style.setProperty("--eye",eyes[(h>>>4)%eyes.length]);el.style.setProperty("--scar",(h>>>10)%4===0?.9:0);
-      el.innerHTML=`<div class="nameplate${avatar?" has-avatar":""}">${avatar?`<img class="avatar" src="${safe(avatar)}" alt="">`:""}<span class="wolf-name">${safe(name)}</span><small class="wolf-meta"></small></div><div class="character"><div class="sprite"></div><i class="eye-glow"></i><i class="scar"></i></div>`;pack.append(el);
+      el.innerHTML=`<div class="nameplate${avatar?" has-avatar":""}">${avatar?`<img class="avatar" src="${safe(avatar)}" alt="">`:""}<span class="wolf-name">${safe(name)}</span><small class="wolf-meta"></small></div><div class="character"><div class="sprite"></div><i class="eye-glow"></i><i class="scar"></i></div><b class="cosmetic"></b>`;pack.append(el);
       const w={name,key,avatar,el,baseScale:scale,seed:h||7,x:fromLeft?-260:innerWidth+30,y:18+((h>>>16)%45),target:null,moving:false,leaving:false,flip:fromLeft?1:-1,state:"walk",until:0,next:0,last:Date.now(),joined:false,pendingCommand:command,commandId:0};wolves.set(key,w);updateWolfRank(w);w.el.style.left=w.x+"px";w.el.style.bottom=w.y+"px";requestAnimationFrame(()=>el.classList.add("visible"));moveTo(w,targetFor(w))
     }
     function chooseAction(w,now){
@@ -123,7 +130,7 @@
     function connect(){const ws=new WebSocket((location.protocol==="https:"?"wss://":"ws://")+location.host+"/live");ws.onopen=()=>document.getElementById("status").textContent="V2 PACK ONLINE";ws.onmessage=e=>{try{const d=JSON.parse(e.data);if(d.type==="chat")spawn(d)}catch{}};ws.onclose=()=>{document.getElementById("status").textContent="RECONNECTING";setTimeout(connect,2200)}}
     connect();
     updateLeaderboard();
-    if(new URLSearchParams(location.search).has("demo")){document.body.classList.add("demo");["LESTARWOLF","NightFang","CyberHowl","RedMoon","PackRunner"].forEach((username,i)=>setTimeout(()=>spawn({username,message:i===4?"!leaderboard":""}),i*850))}
+    if(new URLSearchParams(location.search).has("demo")){document.body.classList.add("demo");["LESTARWOLF","NightFang","CyberHowl","RedMoon","PackRunner"].forEach((username,i)=>setTimeout(()=>spawn({username,message:i===3?"!dig":i===4?"!leaderboard":""}),i*850))}
     addEventListener("resize",()=>{for(const w of wolves.values())if(!w.leaving){w.x=clamp(w.x,-40,innerWidth-205);w.el.style.left=w.x+"px"}});
   </script>
 </body>

@@ -21,7 +21,10 @@ Viewer chat commands:
 - `!sit` — make your wolf sit
 - `!sleep` — put your wolf to sleep
 - `!treat` — toss your wolf a treat
+- `!dig` — dig for funny loot, bonus XP, and rare cosmetics (10-minute cooldown)
 - `!leaderboard` or `!top5` — show the Top 5 Pack Members for 15 seconds
+
+Digging loot includes bones, giant steaks, old boots, squeaky ducks, skunks, empty holes, golden bones, and the rare Moon Crown. Duck Charms, Golden Collars, and Moon Crowns are saved and automatically equipped on the viewer's wolf.
 
 Owner-only testing commands:
 - `!testwolf` — add one test wolf
