@@ -20,6 +20,7 @@ Viewer chat commands:
 - `!sit` — make your wolf sit
 - `!sleep` — put your wolf to sleep
 - `!treat` — toss your wolf a treat
+- `!leaderboard` or `!top5` — show the Top 5 Pack Members for 15 seconds
 
 Owner-only testing commands:
 - `!testwolf` — add one test wolf
