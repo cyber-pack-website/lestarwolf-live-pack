@@ -7,8 +7,8 @@ const PORT=process.env.PORT||10000, CLIENT_ID=process.env.KICK_CLIENT_ID||"", CL
 const clients=new Set(); wss.on("connection",w=>{clients.add(w);w.on("close",()=>clients.delete(w))});
 const send=o=>{const s=JSON.stringify(o);for(const w of clients)if(w.readyState===1)w.send(s)};
 app.use("/overlay",express.static("public",{etag:true,maxAge:"1h"}));
-app.get("/",(_,r)=>r.send('<h2>LESTARWOLF Live Pack V2</h2><p><a href="/setup">Connect Kick</a> | <a href="/test">Test wolf</a> | <a href="/overlay/?demo=1">V2 demo</a></p>'));
-app.get("/test",(_,r)=>{send({type:"chat",username:"TestWolf"+Math.floor(Math.random()*99)});r.send("V2 test wolf sent. Check the overlay.")});
+app.get("/",(_,r)=>r.send('<h2>LESTARWOLF Live Pack V3</h2><p><a href="/setup">Connect Kick</a> | <a href="/test">Test wolf</a> | <a href="/overlay/?demo=1&v3test=1">V3 demo</a></p>'));
+app.get("/test",(_,r)=>{send({type:"chat",username:"TestWolf"+Math.floor(Math.random()*99)});r.send("V3 test wolf sent. Check the overlay.")});
 let pkce={};
 const b64=b=>b.toString("base64url");
 app.get("/setup",(req,res)=>{if(!CLIENT_ID||!CLIENT_SECRET||!BASE)return res.status(500).send("Host variables are not configured yet.");
@@ -21,4 +21,4 @@ app.get("/callback",async(req,res)=>{try{if(req.query.state!==pkce.state)throw E
  const sr=await fetch("https://api.kick.com/public/v1/events/subscriptions",{method:"POST",headers:{Authorization:"Bearer "+tok.access_token,"Content-Type":"application/json"},body:JSON.stringify({method:"webhook",events:[{name:"chat.message.sent",version:1},{name:"channel.subscription.gifts",version:1},{name:"channel.subscription.new",version:1},{name:"channel.subscription.renewal",version:1},{name:"kicks.gifted",version:1}]})});
  res.send("<h2>Kick connected.</h2><p>OBS URL: <b>"+BASE+"/overlay/</b></p><pre>"+(await sr.text()).replace(/[<>&]/g,"")+"</pre>")}catch(e){res.status(500).send("Setup failed: "+e.message)}});
 app.post("/webhook",express.raw({type:"*/*"}),(req,res)=>{try{const type=req.get("Kick-Event-Type"),d=JSON.parse(req.body.toString()),avatarOf=u=>{const p=u?.profile_picture||u?.profile_picture_url||"";return typeof p==="string"?p:typeof p?.url==="string"?p.url:""};if(type==="chat.message.sent"){const s=d.sender||{};if(s.username)send({type:"chat",username:s.username,avatar:avatarOf(s),message:d.content||""})}else if(type==="kicks.gifted"&&Number(d.gift?.amount||0)>=10){send({type:"moon",username:d.sender?.username||"PACK MEMBER",avatar:avatarOf(d.sender),detail:`${Number(d.gift.amount)} KICKS GIFTED`})}else if(type==="channel.subscription.gifts"){const count=Array.isArray(d.giftees)?d.giftees.length:1;send({type:"moon",username:d.gifter?.username||"ANONYMOUS PACK MEMBER",avatar:avatarOf(d.gifter),detail:`${count} GIFTED SUB${count===1?"":"S"}`})}else if(type==="channel.subscription.new"||type==="channel.subscription.renewal"){const who=d.subscriber||{};send({type:"moon",username:who.username||"PACK MEMBER",avatar:avatarOf(who),detail:type==="channel.subscription.new"?"NEW SUB":"SUB RENEWAL"})}res.sendStatus(200)}catch{res.sendStatus(400)}});
-server.listen(PORT,"0.0.0.0",()=>console.log("Live Pack V2 running on 0.0.0.0:"+PORT));
+server.listen(PORT,"0.0.0.0",()=>console.log("Live Pack V3 running on 0.0.0.0:"+PORT));
