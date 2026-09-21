@@ -27,6 +27,8 @@ Viewer chat commands:
 Moon event:
 - A new sub, renewal, gifted sub(s), or 10+ Kicks gifted triggers a moon roll.
 - The moon enters from the left, spins through White, Green, Blue, Purple, and Gold for 25 seconds, then lands on a weighted random color. Gold has a 3% chance.
+- When the moon lands, it drops a saved item for the supporter: White/Green items last 24 hours, Blue/Purple items last 42 hours, and the Gold Moon Totem is permanent.
+- Wolves howl when a viewer joins the pack and when the moon rises. Enable audio for the OBS browser source to hear it.
 - Owner testing: `!testmoon` for a random roll, or `!testmoon gold` to preview the Gold landing.
 
 Digging loot includes bones, giant steaks, old boots, squeaky ducks, skunks, empty holes, golden bones, and the rare Moon Crown. The squeaky duck is a funny find, not a cosmetic. Golden Collars have about a 0.8% drop chance and Moon Crowns about a 0.2% drop chance; both are saved and automatically equipped on the viewer's wolf.
