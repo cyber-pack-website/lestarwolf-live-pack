@@ -24,7 +24,7 @@ Viewer chat commands:
 - `!dig` — dig for funny loot, bonus XP, and rare cosmetics (10-minute cooldown)
 - `!zoomies` — race around the entire screen for 8 seconds
 - `!boop @viewer` — run over and boop another wolf
-- `!play @viewer` — run over and wrestle with another wolf
+- `!play @viewer` — run over, face another wolf, and play tug-of-war with a rope
 - `!stats` — show your current level, XP, dig finds, and active moon-item count
 - `!commands` — briefly show the main viewer commands
 - `!leaderboard` or `!top5` — show the Top 5 Pack Members for 15 seconds
