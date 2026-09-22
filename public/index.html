@@ -205,6 +205,7 @@
     if(query.has("tugtest")){spawn({username:"LESTARWOLF",message:""});setTimeout(()=>spawn({username:"PackRunner",message:""}),300);setTimeout(()=>spawn({username:"LESTARWOLF",message:"!play @PackRunner"}),6500)}
     if(query.has("moon"))setTimeout(()=>triggerMoon({username:"DigTester",detail:"10 TEST KICKS",force:query.get("moon")}),5200);
     if(query.has("bosstest")){["DigTester","NightFang","CyberHowl","PackRunner"].forEach((username,i)=>setTimeout(()=>spawn({username,message:""}),i*260));setTimeout(()=>startBoss({hp:60,duration:90000,test:true}),1700);setTimeout(()=>spawn({username:"DigTester",message:"!attack"}),5200);setTimeout(()=>spawn({username:"NightFang",message:"!attack"}),5600);setTimeout(()=>spawn({username:"CyberHowl",message:"!attack"}),6000);setTimeout(()=>spawn({username:"PackRunner",message:"!attack"}),6400)}
+    if(query.has("bosscommandtest"))setTimeout(()=>spawn({username:"LESTARWOLF",message:"!testboss"}),500);
     addEventListener("resize",()=>{for(const w of wolves.values())if(!w.leaving){w.x=clamp(w.x,-40,innerWidth-205);w.el.style.left=w.x+"px"}});
   </script>
 </body>
