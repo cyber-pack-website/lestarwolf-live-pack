@@ -37,7 +37,7 @@
     .eye-glow{position:absolute;right:46px;top:51px;width:6px;height:6px;border-radius:50%;background:var(--eye,#e31b2d);box-shadow:0 0 7px 2px var(--eye,#e31b2d);opacity:.75;transform:scaleX(var(--flip));display:none}
     .idle .eye-glow,.react .eye-glow{display:block}
     .scar{position:absolute;right:49px;top:43px;width:2px;height:20px;background:#cdd5daaa;box-shadow:4px 1px 0 #cdd5da66;transform:rotate(19deg) scaleX(var(--flip));opacity:var(--scar,0);border-radius:2px}
-    .nameplate{position:absolute;left:50%;top:-38px;transform:translateX(-50%) scale(var(--label-scale,1));transform-origin:50% 100%;width:max-content;max-width:330px;min-width:175px;min-height:58px;padding:8px 18px 8px 52px;border:2px solid var(--rank-glow,#eb2238);border-radius:26px;background:linear-gradient(180deg,#111720fa,#050609fa);color:#fff;font-size:20px;font-weight:1000;letter-spacing:.4px;white-space:nowrap;overflow:hidden;text-align:center;text-shadow:0 2px 4px #000;box-shadow:0 0 0 2px #000,0 4px 16px #000c,0 0 var(--rank-shine,12px) color-mix(in srgb,var(--rank-glow,#b70e22) 70%,transparent)}
+    .nameplate{position:absolute;left:50%;top:calc(-38px - var(--label-lane,0)*72px);transform:translateX(-50%) scale(var(--label-scale,1));transform-origin:50% 100%;width:max-content;max-width:330px;min-width:175px;min-height:58px;padding:8px 18px 8px 52px;border:2px solid var(--rank-glow,#eb2238);border-radius:26px;background:linear-gradient(180deg,#111720fa,#050609fa);color:#fff;font-size:20px;font-weight:1000;letter-spacing:.4px;white-space:nowrap;overflow:hidden;text-align:center;text-shadow:0 2px 4px #000;box-shadow:0 0 0 2px #000,0 4px 16px #000c,0 0 var(--rank-shine,12px) color-mix(in srgb,var(--rank-glow,#b70e22) 70%,transparent);transition:top .22s ease}
     .nameplate:before{content:"";position:absolute;left:19px;top:21px;width:13px;height:13px;background:var(--rank-glow,var(--eye,#e31b2d));transform:rotate(45deg);box-shadow:0 0 10px var(--rank-glow,var(--eye,#e31b2d))}
     .nameplate.has-avatar{padding-left:66px}.nameplate.has-avatar:before{display:none}.wolf-name{display:flex;align-items:center;justify-content:center;gap:9px;overflow:hidden}.wolf-name-text{min-width:0;overflow:hidden;text-overflow:ellipsis}.wolf-meta{display:block;margin-top:1px;color:#fff;font-size:13px;font-weight:1000;letter-spacing:.7px;text-transform:uppercase}.avatar{position:absolute;left:5px;top:5px;width:48px;height:48px;border-radius:50%;object-fit:cover;background:#111;border:2px solid var(--rank-glow,#f02a3f);box-shadow:0 0 13px var(--rank-glow,#d51d35)}
     .join{position:absolute;bottom:205px;left:50%;transform:translateX(-50%);padding:7px 14px;border-radius:14px;background:#06080be8;border:1px solid #e42036;color:#fff;font-size:14px;font-weight:1000;letter-spacing:.55px;white-space:nowrap;text-shadow:0 2px 4px #000;box-shadow:0 5px 18px #000a,0 0 18px #c9183066;animation:join 3s forwards;z-index:999}
@@ -157,7 +157,8 @@
       const duration=state==="sleep"?6500+rand(w,5000):state==="idle"?2500+rand(w,3500):state==="howl"?2200:2200+rand(w,2000);setState(w,state,duration);w.next=now+duration+800+rand(w,2600)
     }
     function leave(w){w.leaving=true;const left=w.x<innerWidth/2;moveTo(w,{x:left?-290:innerWidth+60,y:w.y},true)}
-    let last=performance.now();
+    let last=performance.now(),lastLabelLayout=0;
+    function layoutNameplates(){const laneRights=[];[...wolves.values()].filter(w=>!w.leaving).sort((a,b)=>a.x-b.x).forEach(w=>{const center=w.x+119,left=center-140,right=center+140;let lane=laneRights.findIndex(edge=>left>edge+14);if(lane<0)lane=laneRights.length;laneRights[lane]=right;w.el.style.setProperty("--label-lane",Math.min(lane,2))})}
     function frame(now){
       const dt=Math.min(.3,(now-last)/1000);last=now;
       for(const [key,w] of wolves){
@@ -178,7 +179,7 @@
         if(!w.leaving&&(!w.lootCheck||Date.now()>=w.lootCheck)){updateWolfRank(w);w.lootCheck=Date.now()+30000}
         if(!w.leaving&&Date.now()-w.last>TIMEOUT)leave(w)
       }
-      requestAnimationFrame(frame)
+      if(now-lastLabelLayout>180){layoutNameplates();lastLabelLayout=now}requestAnimationFrame(frame)
     }
     requestAnimationFrame(frame);
     function connect(){const ws=new WebSocket((location.protocol==="https:"?"wss://":"ws://")+location.host+"/live");ws.onmessage=e=>{try{const d=JSON.parse(e.data);if(d.type==="chat")spawn(d);else if(d.type==="moon")triggerMoon(d)}catch{}};ws.onclose=()=>setTimeout(connect,2200)}
