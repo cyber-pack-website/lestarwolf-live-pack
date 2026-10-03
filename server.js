@@ -9,6 +9,7 @@ const app=express(),server=http.createServer(app),wss=new WebSocketServer({serve
 const PORT=process.env.PORT||10000,CLIENT_ID=process.env.KICK_CLIENT_ID||"",CLIENT_SECRET=process.env.KICK_CLIENT_SECRET||"",BASE=(process.env.PUBLIC_URL||"").replace(/\/$/,""),LEGACY_OWNER=(process.env.KICK_CHANNEL||"lestarwolf").toLowerCase().replace(/[^a-z0-9]/g,""),DATABASE_URL=process.env.DATABASE_URL||"",COOKIE_SECRET=process.env.SESSION_SECRET||CLIENT_SECRET||crypto.randomBytes(32).toString("hex"),TOKEN_SECRET=process.env.TOKEN_ENCRYPTION_KEY||CLIENT_SECRET||COOKIE_SECRET,IS_PROD=process.env.NODE_ENV==="production";
 const pool=DATABASE_URL?new Pool({connectionString:DATABASE_URL,ssl:process.env.PGSSLMODE==="disable"?false:{rejectUnauthorized:false}}):null;
 const memoryStreamers=new Map(),memoryProgress=new Map(),seenMessages=new Set(),oauthStates=new Map(),rooms=new Map(),runtimes=new Map();
+let kickConnection={state:"checking"};
 const EVENTS=["chat.message.sent","channel.subscription.gifts","channel.subscription.new","channel.subscription.renewal","kicks.gifted","livestream.status.updated"];
 const BOSS_WINDOW=30*60*1000,BOSS_DURATION=90*1000,SQUIRREL_DURATION=15*1000,SKUNK_DURATION=15*1000;
 const KICK_PUBLIC_KEY=`-----BEGIN PUBLIC KEY-----
@@ -77,6 +78,18 @@ async function refreshToken(streamer){const refresh=decrypt(streamer.refreshToke
 async function accessToken(streamer){if(streamer.tokenExpiresAt>Date.now()+60000)return decrypt(streamer.accessTokenEnc);streamer=await refreshToken(streamer);return decrypt(streamer.accessTokenEnc)}
 async function kickUser(token){const r=await fetch("https://api.kick.com/public/v1/users",{headers:{Authorization:`Bearer ${token}`}}),data=await r.json();if(!r.ok)throw Error(data.message||"Could not read Kick user");const user=Array.isArray(data.data)?data.data[0]:data.data||data;return{kickUserId:String(user.user_id||user.id||""),username:normalize(user.username||user.name||user.channel_slug),displayName:user.username||user.name||user.channel_slug||"Kick Streamer",avatarUrl:typeof user.profile_picture==="string"?user.profile_picture:user.profile_picture?.url||""}}
 async function subscribe(streamer,token){const r=await fetch("https://api.kick.com/public/v1/events/subscriptions",{method:"POST",headers:{Authorization:`Bearer ${token}`,"Content-Type":"application/json"},body:JSON.stringify({method:"webhook",events:EVENTS.map(name=>({name,version:1}))})}),text=await r.text();let data;try{data=JSON.parse(text)}catch{data={raw:text}}if(!r.ok)throw Error(data.message||`Kick event subscription failed (${r.status})`);return data}
+async function checkOwnerChat(){
+  try{
+    const streamer=await getStreamerByUsername(LEGACY_OWNER);
+    if(!streamer){kickConnection={state:"reconnect_required",reason:"No saved Kick account for overlay owner"};return}
+    const token=await accessToken(streamer);
+    const list=async()=>{const response=await fetch("https://api.kick.com/public/v1/events/subscriptions",{headers:{Authorization:`Bearer ${token}`},signal:AbortSignal.timeout(15000)});if(!response.ok)throw Error(`Kick subscription check failed (${response.status})`);const data=await response.json();if(!Array.isArray(data.data))throw Error("Unexpected Kick subscription response");return data.data};
+    const hasChat=rows=>rows.some(row=>(row.event||row.name)==="chat.message.sent"&&String(row.broadcaster_user_id)===String(streamer.kickUserId));
+    let rows=await list();
+    if(!hasChat(rows)){await subscribe(streamer,token);rows=await list()}
+    kickConnection={state:hasChat(rows)?"subscribed":"chat_subscription_missing",checkedAt:new Date().toISOString()};
+  }catch(error){kickConnection={state:"connection_error",reason:error.message}}
+}
 function sessionStreamer(req){const s=unsigned(parseCookies(req).pack_session);return s&&Date.now()-s.iat<31*24*60*60*1000?String(s.id):""}
 async function requireStreamer(req,res,next){try{const id=sessionStreamer(req);if(!id)return res.redirect("/?login=required");const streamer=await getStreamerById(id);if(!streamer)return res.redirect("/?login=required");req.streamer=streamer;next()}catch(e){next(e)}}
 function verifyWebhook(req,raw){if(process.env.KICK_VERIFY_WEBHOOKS==="false")return true;const id=req.get("Kick-Event-Message-Id")||"",ts=req.get("Kick-Event-Message-Timestamp")||"",sig=req.get("Kick-Event-Signature")||"";if(!id||!ts||!sig)return!IS_PROD;try{return crypto.verify("RSA-SHA256",Buffer.from(`${id}.${ts}.${raw}`),KICK_PUBLIC_KEY,Buffer.from(sig,"base64"))}catch{return false}}
@@ -88,7 +101,7 @@ function commandsPage(streamer){return`<!doctype html><html><head><meta charset=
 app.disable("x-powered-by");
 app.get("/portal.css",async(req,res,next)=>{try{res.type("css").send(await readFile(new URL("./public/portal.css",import.meta.url),"utf8"))}catch(e){next(e)}});
 app.get("/",(_,res)=>res.send(landing()));
-app.get("/health",(_,res)=>res.json({ok:true,version:"4.0.0",database:!!pool,rooms:rooms.size}));
+app.get("/health",(_,res)=>res.json({ok:true,version:"4.0.0",database:!!pool,rooms:rooms.size,kick:kickConnection}));
 app.get("/connect",(req,res)=>{if(!CLIENT_ID||!CLIENT_SECRET||!BASE)return res.status(503).send("Kick connection is not configured yet.");const verifier=b64(crypto.randomBytes(48)),challenge=crypto.createHash("sha256").update(verifier).digest("base64url"),state=b64(crypto.randomBytes(18));oauthStates.set(state,{verifier,created:Date.now()});setTimeout(()=>oauthStates.delete(state),10*60*1000);const q=new URLSearchParams({response_type:"code",client_id:CLIENT_ID,redirect_uri:BASE+"/callback",scope:"events:subscribe user:read channel:read kicks:read",code_challenge:challenge,code_challenge_method:"S256",state});res.redirect("https://id.kick.com/oauth/authorize?"+q)});
 app.get("/setup",(_,res)=>res.redirect("/connect"));
 app.get("/callback",async(req,res,next)=>{try{const pending=oauthStates.get(String(req.query.state||""));oauthStates.delete(String(req.query.state||""));if(!pending||Date.now()-pending.created>10*60*1000)throw Error("Kick sign-in expired. Please try again.");const tokens=await exchangeCode(String(req.query.code||""),pending.verifier),user=await kickUser(tokens.access_token);if(!user.kickUserId||!user.username)throw Error("Kick did not return a valid streamer account.");let streamer=await saveStreamer({...user,overlayKey:newOverlayKey(),accessTokenEnc:encrypt(tokens.access_token),refreshTokenEnc:encrypt(tokens.refresh_token||""),tokenExpiresAt:Date.now()+(Number(tokens.expires_in)||3600)*1000,subscriptionData:{}});const subscriptions=await subscribe(streamer,tokens.access_token);streamer=await saveStreamer({...streamer,subscriptionData:subscriptions});cookie(res,"pack_session",signed({id:streamer.kickUserId,iat:Date.now()}));res.redirect("/dashboard?connected=1")}catch(e){next(e)}});
@@ -112,4 +125,5 @@ if(process.env.DEV_STREAMER){
   const username=normalize(process.env.DEV_STREAMER);
   await saveStreamer({kickUserId:"dev-streamer",username,displayName:process.env.DEV_STREAMER,avatarUrl:"",overlayKey:process.env.DEV_OVERLAY_KEY||"dev-overlay-key",accessTokenEnc:"",refreshTokenEnc:"",tokenExpiresAt:0,subscriptionData:{development:true}});
 }
+if(CLIENT_ID&&CLIENT_SECRET){void checkOwnerChat();setInterval(()=>void checkOwnerChat(),5*60*1000).unref()}
 server.listen(PORT,"0.0.0.0",()=>console.log(`Cyber Pack V4 running on 0.0.0.0:${PORT}${pool?" with PostgreSQL":" in development memory mode"}`));
