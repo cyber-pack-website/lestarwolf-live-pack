@@ -27,7 +27,7 @@ The dashboard includes safe test buttons for wolves, the moon, bear boss, squirr
 - The webhook broadcaster ID selects the correct private overlay room.
 - WebSockets keep chat events isolated between streamers.
 - PostgreSQL stores streamer accounts, encrypted tokens, private overlay keys, and viewer progression.
-- Boss, squirrel, and skunk schedules run only while the corresponding channel is live.
+- Boss, squirrel, and skunk schedules run only while the corresponding channel is live. Automatic bears also require two distinct people who chatted in that channel within the last 15 minutes; known bots and test wolves do not count. Manual boss tests remain available.
 - The existing `/overlay/` route and legacy room remain intact for LESTARWOLF.
 
 ## Viewer progression and activities
