@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node server.js",
     "check": "node --check server.js && node --check kick-webhook.js",
-    "test": "node --test kick-webhook.test.js"
+    "test": "node --test kick-webhook.test.js overlay-performance.test.js"
   },
   "engines": {"node": ">=20"},
   "dependencies": {"express": "^5.1.0", "pg": "^8.16.3", "ws": "^8.18.3"}
